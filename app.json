@@ -17,7 +17,15 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.luckyhegdedev.camExpo"
     },
     "web": {
       "output": "static",
@@ -25,6 +33,7 @@
     },
     "plugins": [
       "expo-router",
+      "react-native-ble-plx",
       [
         "expo-splash-screen",
         {
