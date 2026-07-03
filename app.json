@@ -8,7 +8,12 @@
     "scheme": "camexpo",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Save ESP32-CAM photos to your library",
+        "NSLocationWhenInUseUsageDescription": "Tag photos with your current location",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Tag photos with your current location"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +28,13 @@
         "android.permission.BLUETOOTH_ADMIN",
         "android.permission.BLUETOOTH_CONNECT",
         "android.permission.BLUETOOTH_SCAN",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.luckyhegdedev.camExpo"
     },
@@ -42,6 +53,20 @@
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow camExpo to use your location to tag photos.",
+          "locationWhenInUsePermission": "Allow camExpo to use your location to tag photos."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow camExpo to save photos to your library.",
+          "savePhotosPermission": "Allow camExpo to save photos to your library."
         }
       ]
     ],

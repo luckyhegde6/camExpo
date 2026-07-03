@@ -66,11 +66,40 @@ static esp_err_t status_handler(httpd_req_t *req) {
     httpd_resp_send_500(req);
     return ESP_FAIL;
   }
-  char json[128];
+  char json[512];
   snprintf(json, sizeof(json),
-    "{\"flash\":%s,\"framesize\":%u}",
+    "{"
+    "\"flash\":%s,"
+    "\"framesize\":%u,"
+    "\"quality\":%u,"
+    "\"brightness\":%d,"
+    "\"contrast\":%d,"
+    "\"saturation\":%d,"
+    "\"sharpness\":%d,"
+    "\"hmirror\":%u,"
+    "\"vflip\":%u,"
+    "\"ae_level\":%d,"
+    "\"awb\":%u,"
+    "\"agc\":%u,"
+    "\"aec\":%u,"
+    "\"special_effect\":%u,"
+    "\"wb_mode\":%u"
+    "}",
     digitalRead(FLASH_GPIO_NUM) ? "true" : "false",
-    s->status.framesize
+    s->status.framesize,
+    s->status.quality,
+    s->status.brightness,
+    s->status.contrast,
+    s->status.saturation,
+    s->status.sharpness,
+    s->status.hmirror,
+    s->status.vflip,
+    s->status.ae_level,
+    s->status.awb,
+    s->status.agc,
+    s->status.aec,
+    s->status.special_effect,
+    s->status.wb_mode
   );
   httpd_resp_set_type(req, "application/json");
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
@@ -155,6 +184,32 @@ static esp_err_t cmd_handler(httpd_req_t *req) {
     digitalWrite(FLASH_GPIO_NUM, atoi(val) ? HIGH : LOW);
   } else if (!strcmp(var, "framesize") && s) {
     res = s->set_framesize(s, (framesize_t)atoi(val));
+  } else if (!strcmp(var, "quality") && s) {
+    res = s->set_quality(s, atoi(val));
+  } else if (!strcmp(var, "contrast") && s) {
+    res = s->set_contrast(s, atoi(val));
+  } else if (!strcmp(var, "brightness") && s) {
+    res = s->set_brightness(s, atoi(val));
+  } else if (!strcmp(var, "saturation") && s) {
+    res = s->set_saturation(s, atoi(val));
+  } else if (!strcmp(var, "sharpness") && s) {
+    res = s->set_sharpness(s, atoi(val));
+  } else if (!strcmp(var, "hmirror") && s) {
+    res = s->set_hmirror(s, atoi(val));
+  } else if (!strcmp(var, "vflip") && s) {
+    res = s->set_vflip(s, atoi(val));
+  } else if (!strcmp(var, "ae_level") && s) {
+    res = s->set_ae_level(s, atoi(val));
+  } else if (!strcmp(var, "awb") && s) {
+    res = s->set_whitebal(s, atoi(val));
+  } else if (!strcmp(var, "agc") && s) {
+    res = s->set_gain_ctrl(s, atoi(val));
+  } else if (!strcmp(var, "aec") && s) {
+    res = s->set_exposure_ctrl(s, atoi(val));
+  } else if (!strcmp(var, "special_effect") && s) {
+    res = s->set_special_effect(s, atoi(val));
+  } else if (!strcmp(var, "wb_mode") && s) {
+    res = s->set_wb_mode(s, atoi(val));
   } else {
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_send_500(req);

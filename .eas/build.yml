@@ -1,0 +1,26 @@
+build:
+  name: camExpo APK Build
+  jobs:
+    build-apk:
+      name: Build Release APK
+      runs-on: ubuntu-latest
+      steps:
+        - uses: eas/checkout@v1
+        - uses: eas/setup-node@v1
+          with:
+            node-version: 20
+        - uses: eas/setup-java@v1
+          with:
+            distribution: temurin
+            java-version: 17
+        - run: npm ci
+        - run: npx expo prebuild
+        - run: cd android && ./gradlew assembleRelease
+        - uses: eas/upload-artifact@v1
+          with:
+            name: app-release-apk
+            path: android/app/build/outputs/apk/release/app-release.apk
+
+profiles:
+  production:
+    extends: build-apk
