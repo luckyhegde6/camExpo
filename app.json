@@ -68,6 +68,31 @@
           "photosPermission": "Allow camExpo to save photos to your library.",
           "savePhotosPermission": "Allow camExpo to save photos to your library."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "packagingOptions": {
+              "pickFirsts": [
+                "META-INF/LICENSE",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE.md",
+                "META-INF/DEPENDENCIES",
+                "META-INF/ASL2.0",
+                "META-INF/versions/9/META-INF/LICENSE",
+                "META-INF/versions/9/META-INF/NOTICE"
+              ]
+            },
+            "extraGradleProperties": [
+              {
+                "key": "org.gradle.jvmargs",
+                "value": "-Xmx4g -XX:MaxMetaspaceSize=1g"
+              }
+            ]
+          }
+        }
       ]
     ],
     "experiments": {
