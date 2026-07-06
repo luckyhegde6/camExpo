@@ -4,6 +4,11 @@ on:
   push:
     branches: ['*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -40,9 +45,23 @@ jobs:
           name: app-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
 
-      - name: Create Release
+      - name: Create Release (tag push)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: android/app/build/outputs/apk/release/app-release.apk
           generate_release_notes: true
+
+      - name: Create Release (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          body: |
+            ## camExpo v${{ inputs.version }}
+
+            Triggered manually via workflow_dispatch.
+          files: android/app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
+          draft: true

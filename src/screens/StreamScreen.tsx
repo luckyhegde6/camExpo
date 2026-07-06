@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Switch, Modal, Image, ActivityIndicator, ScrollView, SafeAreaView, Platform, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
 import * as Location from 'expo-location';
-import * as MediaLibrary from 'expo-media-library';
+function getMediaLibrary(): typeof import('expo-media-library') | null {
+  try { return require('expo-media-library'); } catch { return null; }
+}
 import { File, Paths } from 'expo-file-system';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '../hooks/use-theme';
@@ -82,7 +84,7 @@ export default function StreamScreen({ ip, onDisconnect }: StreamScreenProps) {
         setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
       }
     })();
-    MediaLibrary.requestPermissionsAsync();
+    getMediaLibrary()?.requestPermissionsAsync();
   }, []);
 
   const sendControl = async (varName: string, val: number | string, optimisticSetter?: (v: any) => void, optimisticVal?: any) => {
@@ -139,7 +141,9 @@ export default function StreamScreen({ ip, onDisconnect }: StreamScreenProps) {
   const saveToDevice = async (file: File) => {
     setSaving(true);
     try {
-      const asset = await MediaLibrary.createAssetAsync(file.uri);
+      const mediaLib = getMediaLibrary();
+      if (!mediaLib) { Alert.alert('Save Failed', 'Media library not available'); setSaving(false); return; }
+      const asset = await mediaLib.createAssetAsync(file.uri);
       Alert.alert('Saved', `Photo saved to gallery:\n${asset.filename}`);
     } catch (e: any) {
       Alert.alert('Save Failed', e.message);
@@ -153,7 +157,9 @@ export default function StreamScreen({ ip, onDisconnect }: StreamScreenProps) {
     try {
       const dest = new File(Paths.cache, `ESP32_CAM_${Date.now()}.jpg`);
       await File.downloadFileAsync(`http://${ip}/capture?t=${Date.now()}`, dest, { idempotent: true });
-      const perm = await MediaLibrary.requestPermissionsAsync();
+      const mediaLib = getMediaLibrary();
+      if (!mediaLib) { Alert.alert('Save Failed', 'Media library not available'); setSaving(false); return; }
+      const perm = await mediaLib.requestPermissionsAsync();
       if (perm.granted) {
         await saveToDevice(dest);
       } else {

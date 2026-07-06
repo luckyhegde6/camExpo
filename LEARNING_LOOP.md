@@ -27,3 +27,19 @@
 **Root cause**: Arduino `WebServer` runs in `loop()`, single-threaded. The MJPEG streaming loop blocked `loop()` from handling control requests or serving `/status`.
 
 **Fix**: Replaced with ESP-IDF `esp_http_server`, which runs HTTP handlers in separate FreeRTOS tasks. Stream, control, and status all run concurrently without blocking.
+
+### 2026-07-07: App Crash on Emulator (BleManager)
+
+**Problem**: App crashed immediately on startup in Expo Go emulator with `BleManager is not a constructor`.
+
+**Root cause**: `BleService.ts` had a module-level `new BleManager()` that executed at import time. The BLE native module isn't available in Expo Go, causing a crash before any screen rendered.
+
+**Fix**: Made `BleManager` initialization lazy via `ensureManager()` method. Null-guard all BLE operations. The app now loads without BLE and only uses BLE features when in standalone AP mode.
+
+### 2026-07-07: App Crash on Emulator (MediaLibrary)
+
+**Problem**: App crashed at import time in Expo Go because `expo-media-library` uses native modules not available in Expo Go.
+
+**Root cause**: Top-level `import * as MediaLibrary from 'expo-media-library'` executed at module load time, and Expo Go doesn't bundle the `ExpoMediaLibraryNext` native module.
+
+**Fix**: Replaced top-level import with lazy `getMediaLibrary()` function using `require()` in a try-catch. All call sites null-check before using the module.

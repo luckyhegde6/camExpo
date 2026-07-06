@@ -1,21 +1,30 @@
 import { BleManager, Device } from 'react-native-ble-plx';
 
 class BleService {
-  manager: BleManager;
+  manager: BleManager | null = null;
   connectedDevice: Device | null = null;
 
-  constructor() {
-    this.manager = new BleManager();
+  private ensureManager(): BleManager | null {
+    if (!this.manager) {
+      try {
+        this.manager = new BleManager();
+      } catch {
+        return null;
+      }
+    }
+    return this.manager;
   }
 
   async scanAndConnect(onDeviceFound: (device: Device) => void) {
-    this.manager.startDeviceScan(null, null, (error, device) => {
+    const manager = this.ensureManager();
+    if (!manager) return;
+    manager.startDeviceScan(null, null, (error, device) => {
       if (error) {
         console.error('Scan error:', error);
         return;
       }
       if (device?.name === 'ESP32-CAM-SETUP') {
-        this.manager.stopDeviceScan();
+        manager.stopDeviceScan();
         onDeviceFound(device);
         this.connectToDevice(device);
       }
@@ -53,7 +62,9 @@ class BleService {
   }
 
   destroy() {
-    this.manager.destroy();
+    if (this.manager) {
+      this.manager.destroy();
+    }
   }
 }
 

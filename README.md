@@ -1,6 +1,19 @@
 # camExpo — ESP32-CAM Viewer
 
+[![Build](https://github.com/luckyhegde6/camExpo/actions/workflows/build-apk.yml/badge.svg)](https://github.com/luckyhegde6/camExpo/actions/workflows/build-apk.yml)
+[![Release](https://img.shields.io/github/v/release/luckyhegde6/camExpo?logo=github)](https://github.com/luckyhegde6/camExpo/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/luckyhegde6/camExpo/total?logo=github)](https://github.com/luckyhegde6/camExpo/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Android-brightgreen?logo=android)](https://github.com/luckyhegde6/camExpo/releases/latest)
+
 React Native (Expo) app that streams MJPEG from an ESP32-CAM over LAN. Full camera controls, capture/save to gallery, geolocation tagging, and recording.
+
+[⬇️ Download Latest APK](https://github.com/luckyhegde6/camExpo/releases/latest)
+
+## Screenshots
+
+| Mode Selection | IP Discovery | Stream & Controls |
+|---|---|---|
+| ![Mode Selection](docs/assets/screenshots/mode-selection.png) | ![Discovery](docs/assets/screenshots/discovery.png) | ![Stream](docs/assets/screenshots/stream.png) |
 
 ## Requirements
 
@@ -18,16 +31,17 @@ npx expo start
 
 On Android, scan the QR code with Expo Go, or run `npx expo run:android` for a native build.
 
-## ESP32-CAM Setup
+## ESP32-CAM Integration
+
+Full flashing, wiring, and control reference: [docs/ESP32_CAM_GUIDE.md](docs/ESP32_CAM_GUIDE.md)
+
+### Quick Flash
 
 1. Open `esp32-cam-firmware/esp32-cam-firmware.ino` in Arduino IDE
-2. Install ESP32 board package (2.x) via Board Manager
-3. Select board: **AI Thinker ESP32-CAM**
-4. Partition scheme: **Huge APP (3MB No OTA/1MB SPIFFS)**
-5. Set your WiFi credentials at top of the file
-6. Flash with `Tools > Upload Speed: 115200`
-
-The camera will appear at the IP printed in the Serial Monitor (115200 baud).
+2. Board: **AI Thinker ESP32-CAM**, Partition: **Huge APP (3MB No OTA/1MB SPIFFS)**
+3. Set your WiFi credentials at top of file
+4. Hold GPIO 0 low, reset, upload
+5. Find IP via Serial Monitor (115200 baud)
 
 ## Architecture
 
@@ -41,7 +55,7 @@ App                          ESP32-CAM
 └──────────────┘            └──────────────────┘
 ```
 
-Discovery flow: try manual IP → test subnet scan → fallback to common subnets. On emulator (`10.0.2.x`), uses server-side API route `/api/discover` that scans LAN from the dev host.
+Discovery: manual IP → subnet scan → common subnets. Emulator (`10.0.2.x`) uses server-side `/api/discover`.
 
 ## Features
 
@@ -50,34 +64,23 @@ Discovery flow: try manual IP → test subnet scan → fallback to common subnet
 - **Recording**: captures frames at 1fps, saves individually to gallery
 - **Overlay**: timestamp and GPS coordinates on stream
 - **Connection modes**: manual IP entry, subnet scan, BLE provisioning (standalone AP mode)
-- **Stream URL**: `http://{ip}:81/stream` refreshable on tap
 
 ## Build APK
 
 ```bash
-# Local
-npx expo run:android
-# or for release
-cd android && gradlew assembleRelease
-# APK at: android/app/build/outputs/apk/release/app-release.apk
-
-# EAS cloud
-eas build -p android --profile production
+npx expo run:android                                    # dev build to device
+cd android && gradlew assembleRelease                   # release APK
+eas build -p android --profile production               # EAS cloud build
 ```
+
+APK at: `android/app/build/outputs/apk/release/app-release.apk`
 
 ## CI/CD
 
-GitHub Actions builds a release APK on push (any branch) and creates a GitHub Release with the APK attached when a version tag (`v*`) is pushed.
+GitHub Actions builds on every push and uploads the APK as an artifact. Two ways to create a release:
 
-## Troubleshooting
-
-| Problem | Likely Cause | Fix |
-|---------|-------------|-----|
-| No stream / black screen | Wrong IP / different subnet | Use Scan button or enter IP manually |
-| Frame Buffer Overflow (FB-OVF) | Camera init before WiFi stable | Flash updated firmware (init after WiFi) |
-| Emulator can't find camera | NAT network isolation | Use server-side scan (auto-detected) |
-| App crashes on open | Missing permissions | Run `expo prebuild` then rebuild |
-| Slow stream | High quality setting | Lower JPEG quality slider |
+1. **Manual button**: Actions tab → Build APK → "Run workflow" → enter version → creates draft release
+2. **Tag push**: `git tag v1.0.0 && git push origin v1.0.0` → creates release automatically
 
 ## Firmware Details
 
@@ -86,7 +89,35 @@ GitHub Actions builds a release APK on push (any branch) and creates a GitHub Re
 - Port 81: `/stream` (multipart/x-mixed-replace)
 - Camera init runs after WiFi connects, XCLK at 10MHz, `CAMERA_GRAB_LATEST`, PSRAM preferred
 - mDNS: `esp32cam.local`
-- Fallback to AP mode (`ESP32-CAM-AP`, `192.168.4.1`) with BLE provisioning if WiFi fails
+- Fallback to AP mode (`ESP32-CAM-AP`, `192.168.4.1`) with BLE provisioning
+
+## Troubleshooting
+
+| Problem | Likely Cause | Fix |
+|---------|-------------|-----|
+| No stream / black screen | Wrong IP | Use Scan button or check router |
+| FB-OVF at boot | Camera init before WiFi stable | Flash current firmware |
+| Emulator can't find camera | NAT isolation | Auto-detected, uses server-side scan |
+| App crashes on open | Missing permissions | Run `expo prebuild` then rebuild |
+| Slow stream | High quality setting | Lower JPEG quality slider |
+
+## Repository Structure
+
+```
+camExpo/
+├── esp32-cam-firmware/       # ESP32 firmware (esp_http_server)
+│   └── esp32-cam-firmware.ino
+├── src/
+│   ├── screens/              # ModeSelection, Discovery, Stream
+│   ├── services/             # NetworkDiscovery, BleService
+│   ├── app/                  # Expo Router (index, layout, API routes)
+│   └── components/           # Tab bar, themed components
+├── docs/
+│   ├── ESP32_CAM_GUIDE.md    # Full integration guide
+│   └── assets/screenshots/   # App screenshots
+├── .github/workflows/        # CI/CD: build-apk.yml
+└── app.json                  # Expo config + permissions
+```
 
 ## License
 
