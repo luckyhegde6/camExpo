@@ -31,9 +31,31 @@ npx expo start
 
 On Android, scan the QR code with Expo Go, or run `npx expo run:android` for a native build.
 
+### Run the APK
+
+1. Download the APK from [GitHub Releases](https://github.com/luckyhegde6/camExpo/releases/latest)
+2. Transfer it to your Android device (or use `adb install app-release.apk`)
+3. On first launch, grant **Location**, **Camera**, and **Storage** permissions when prompted
+4. Enter your ESP32-CAM's IP address or tap **Scan** to discover cameras on your LAN
+
+> **Emulator**: The app works in Android emulators (tested on Pixel 7 API 34). Use the Scan button — server-side discovery auto-detects emulator NAT (`10.0.2.x`).
+
 ## ESP32-CAM Integration
 
-Full flashing, wiring, and control reference: [docs/ESP32_CAM_GUIDE.md](docs/ESP32_CAM_GUIDE.md)
+Full reference: [docs/ESP32_CAM_GUIDE.md](docs/ESP32_CAM_GUIDE.md) — covers pinout, wiring, schematic, flashing, control commands, and troubleshooting.
+
+### What's in the Guide
+
+| Section | Description |
+|---------|-------------|
+| Hardware | Board components, schematic overview, power specs |
+| Pinout | Full GPIO table with safety guide, camera connector mapping |
+| Wiring | FTDI diagram + MB programmer, connection table |
+| Flashing | Board config, step-by-step, power consumption, troubleshooting |
+| Firmware | Architecture diagram (port 80/81), endpoint reference |
+| Controls | Flash, resolution, image adjustment, flip/mirror, effects |
+| Status | JSON endpoint response format |
+| BLE | Provisioning flow for AP mode |
 
 ### Quick Flash
 
@@ -75,12 +97,16 @@ eas build -p android --profile production               # EAS cloud build
 
 APK at: `android/app/build/outputs/apk/release/app-release.apk`
 
+Install via ADB: `adb install android/app/build/outputs/apk/release/app-release.apk`
+
 ## CI/CD
 
 GitHub Actions builds on every push and uploads the APK as an artifact. Two ways to create a release:
 
-1. **Manual button**: Actions tab → Build APK → "Run workflow" → enter version → creates draft release
-2. **Tag push**: `git tag v1.0.0 && git push origin v1.0.0` → creates release automatically
+1. **Manual workflow**: `gh workflow run "Build APK" --ref main -f version=1.0.0` — creates a **draft** release
+2. **Tag push**: `git tag v1.0.0 && git push origin v1.0.0` — creates a **published** release automatically
+
+> Push-only builds produce artifacts (not releases). Download from the workflow run page → Artifacts → `app-release-apk`.
 
 ## Firmware Details
 
